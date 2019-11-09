@@ -1,0 +1,365 @@
+	@font-face {
+		font-family: 'bahnschrift';
+		src: url('http://rozup.ir/view/2898136/bahnschrift.ttf') format('woff'), /* Modern Browsers */
+			 url('http://rozup.ir/view/2898136/bahnschrift.ttf')  format('truetype');
+	}
+	*{
+		border:none;
+		outline:none;
+		font-family: 'bahnschrift',sans-serif,Programme;
+		font-size:5vw;
+	}
+	#desktopLimit{
+		display: none;
+	}
+	#panel{
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		background-color: #001f3f;
+		box-shadow: 0px 0px 9vw #001f3f;
+		z-index: 100;
+	}
+	body {
+		color: #fbfbfb;
+		background: #001f3f;
+		margin: 0px;
+		overflow-x: hidden;
+	}
+	#mainInput {
+		margin: 3vw;
+		background: no-repeat;
+		border: 0.5vw solid currentColor;
+		border-radius: 8vw;
+		transition: 0.4s;
+		color: rgba(255, 255, 255, 0.21);
+		box-shadow: 0px 0px 5vw rgba(255, 255, 255, 0);
+		padding: 2vw;
+	}
+	#mainInput:focus, #mainInput.active{
+		color: #0074D9;
+		box-shadow: 0px 0px 5vw rgba(0, 0, 0, 0.4);
+	}
+	.fa-bars{
+		font-size: 6vw;
+		color: #0074d9;
+		cursor: pointer;
+		vertical-align: middle;
+	}
+	#addInput {
+		background-color: #0074D9;
+		padding: 0;
+		border-radius: 7vw;
+		transition: 0.3s;
+		opacity: 0.4;
+		width: 11vw;
+		height: 11vw;
+		vertical-align: middle;
+		display: inline-flex;
+		cursor: no-drop;
+	}
+	#addInput > span{
+		font-size: 8vw;
+		color: white;
+		margin: auto;
+	}
+	#addInput.active{
+		cursor: pointer !important;
+		opacity: 1;
+		animation-name: bright;
+		animation-duration: 1.3s;
+		animation-iteration-count: infinite;
+	}
+	@-webkit-keyframes bright {
+		0% {box-shadow: 0px 0px 5vw transparent;}
+		50% {box-shadow: 0px 0px 6vw currentColor;}
+		100% {box-shadow: 0px 0px 5vw transparent;}
+	}
+	@keyframes bright {
+		0% {box-shadow: 0px 0px 5vw transparent;}
+		50% {box-shadow: 0px 0px 6vw currentColor;}
+		100% {box-shadow: 0px 0px 5vw transparent;}
+	}
+	@media(min-width:768px){
+		section{
+			display: none !important;
+		}
+		#desktopLimit{
+			display: unset;
+		}
+	}
+	#list {
+		width: 100%;
+		position: relative;
+		transform: translate(-50%);
+		left: 50%;
+		height: calc(100vh - 18vw);
+		overflow-y: auto;
+		overflow-x: hidden;
+		text-align: center;
+		scroll-behavior: smooth;
+	}
+	#list.twoColumn{
+		text-align: left;
+		width: calc(100% + 2vw);
+	}
+	#list.twoColumn > .card{
+		width: calc(50% - 6vw);
+		margin: 0.5vw;
+		display: inline-flex;
+	}
+	.disable{
+		opacity: 0.4;
+	}
+	.card {
+		background: #0074D9;
+		padding: 1vw 3vw 1vw 2vw;
+		margin-top: 2vw;
+		border-radius: 3vw;
+		color: #001f3f;
+		display: flex;
+		box-shadow: 0 0 2vw rgba(0, 0, 0, 0.17);
+		direction: ltr;
+		vertical-align: middle;
+	}
+	.card.hasTransition{
+		transition: 0.5s !important;
+	}
+	#list.direction {
+		text-align: right !important;
+	}
+	#list.direction ~ #blackSection #boxTitle, #list.direction > .card, #list.direction + #panel input{
+		direction: rtl;
+	}
+	#list.direction .fa-sort, #list.direction .fa-lock{
+		right: -2vw;
+	}
+	#list.direction p{
+		margin: auto 0 auto 2vw;
+	}
+	#list.direction .fa-lock-open{
+		right: -4vw;
+	}
+	.card.active{
+		z-index: 20;
+		filter: brightness(1.5) saturate(1.5);
+		box-shadow: 0px 0px 15vw #000306;
+	}
+	.card.active > .fa-sort{
+		color: #004966;
+	}
+	.card > p {
+		cursor: pointer;
+		padding: 0;
+		display: inline-block;
+		white-space: nowrap;
+		width: 93%;
+		flex: 1;
+		overflow-x: auto;
+		margin: auto 2vw auto 0;
+		transition: 0.4s;
+		text-align: initial;
+	}
+	.card > i {
+		cursor: pointer;
+		color: #FFF;
+		font-size: 6vw;
+		transition: 0.3s;
+		padding: 2vw;
+		margin: -2vw;
+		opacity: 0.8;
+		margin-top: auto;
+		margin-bottom: auto;
+	}
+	.fa-check:active{
+		transition: 0s;
+		color: #004966;
+	}
+	.fa-sort{
+		z-index: 999;
+	}
+	.fa-lock, .fa-sort{
+		position: relative;
+		right: 2vw;
+	}
+	.fa-lock-open{
+		position: relative;
+		right: 4vw;
+	}
+	.textBox,#messageBox{
+		white-space: pre-line;
+		opacity: 0;
+		display: none;
+		position: fixed;
+		top: 7vw;
+		transform: translate(-50%);
+		left: 50%;
+		padding: 2vw;
+		border-radius: 3vw;
+		box-shadow: 0px 0px 4vw rgba(0, 0, 0, 0.53);
+		z-index: 110;
+	}
+	#stats {
+		text-align: center;
+		background-color: rgba(16, 16, 68, 0.44);
+	}
+	#blackSection{
+		display: none;
+		position: fixed;
+		z-index: 95;
+		top: 0px;
+		left: 0px;
+		width: 100vw;
+		height: calc(100vh - 17.8vw);
+		background-color: rgba(0,0,0,0.75);
+	}
+	#messageBox{
+		white-space: normal;
+		width: 93%;
+		transform: translate(-50%,-50%);
+		top: 25%;
+		background-color: rgba(255, 255, 255, 0.73);
+		line-height: 1.6;
+		text-align: justify;
+		max-height: calc(50vh - 12vw);
+		overflow: auto;
+		text-shadow: 0 0 1vw rgba(0, 0, 0, 0.34);
+	}
+	#messageBox > span{
+		white-space: pre-line;
+		display: block;
+	}
+	#sidenav {
+		height: 0;
+		width: 100%;
+		position: fixed;
+		z-index: 1;
+		bottom: -14vw;
+		left: 0;
+		overflow-x: hidden;
+		transition: 0.5s;
+		padding-top: 14vw;
+		background: #001a31;
+		z-index: 105;
+		white-space: nowrap;
+		border-radius: 10vw 10vw 0 0;
+		display: flex;
+	}
+	#fileInput{
+		display: none;
+	}
+	#sidenav.active{
+		bottom: 0;
+		height: 50% !important;
+	}
+
+	#sidenav a, #sidenav button, #iDB {
+		padding: 3vw 3vw 3vw 4vw;
+		text-decoration: none;
+		font-size: 5vw;
+		color: #7FDBFF;
+		display: block;
+		transition: 0.3s;
+		background: none;
+		border: none;
+		cursor: pointer;
+	}
+
+	#iDB{
+		display: inline-block;
+	}
+
+	#sidenav .closebtn {
+		position: absolute;
+		transition: 0s;
+		top: 0;
+		right: 4vw;
+		font-size: 9vw;
+	}
+
+	#main {
+		padding: 2vw;
+		padding-top: 0;
+	}
+	#main.active > #list > .card{
+		border-radius: 7vw;
+	}
+	#main.active > #list > .card > p, #main.active > #list > .card > i{
+		opacity: 0;
+		overflow: hidden;
+	}
+	#label{
+		display: none;
+		text-align: center;
+	}
+	#label.active{
+		display: block;
+	}
+	#label > span {
+		cursor: pointer;
+		width: 19vw;
+		height: 7vw;
+		padding: 0;
+		margin: 1vw;
+		border-radius: 4vw;
+		transition: 0.6s;
+		box-shadow: 0 0 4vw rgba(0, 0, 0, 0.21);
+		border: 3vw solid #001f3f;
+		display: inline-block;
+	}
+	#label > span::after {
+		content: 'Text';
+		text-align: center;
+		display: block;
+		color: #001f3f;
+		font-size: 5vw;
+	}
+	#label > span:hover{
+		border-color: white;
+	}
+	#uDT{
+		color: #24ca3a !important;
+		opacity: 0.2;
+	}
+	#uDT.active{
+		opacity: 1;
+	}
+	.isLock > p{
+		color: transparent;
+		visibility: hidden;
+		opacity: 0;
+		z-index: -999;
+		text-indent: -20vw;
+		letter-spacing: -3vw;
+	}
+	.customButton{
+		display: none;
+		background: #444;
+		padding: 2vw;
+		border-radius: 1vw;
+		box-shadow: 0 0 3vw rgba(0, 0, 0, 0.66);
+		font-size: 3.7vw;
+		cursor: pointer;
+	}
+	.customButton.active{
+		display: unset;
+	}
+	#redScreen{
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background-color: rgba(255, 0, 0, 0.9);
+		z-index: 600;
+		display: none;
+	}
+	.messageBoxData{
+		color: #1a1a1a;
+		text-align: center;
+		border-top: 1.5vw solid transparent;
+	}
+	#boxTitle{
+		display:block;
+	}
