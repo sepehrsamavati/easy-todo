@@ -1,5 +1,6 @@
-var DB={
-	'version':'2.3.1',
+const dbChanged=false;
+let DB={
+	'version':'2.3.2',
 	'name':'',
 	'done':0,
 	'list':[],
@@ -53,7 +54,7 @@ function refresh(dontScroll, isAdded, refreshId)
 	{
 		indexCard(DB["list"].length-1, true);
 	}
-	else if (refreshId!==undefined) /* refresh a card */
+	else if (refreshId !== undefined) /* refresh a card */
 	{
 		indexCard(refreshId, null, true);
 	}
@@ -87,7 +88,7 @@ function indexCard(i, effect, refresh)
 	paragraph = document.createElement("p");
 	paragraph.textContent = DB["list"][i]["text"];
 	card.appendChild(paragraph);
-	if(DB["list"][i]["password"]!==null)
+	if(DB["list"][i]["password"]!=null)
 	{
 		if(DB["list"][i]["password"]!=".")
 		{
@@ -151,7 +152,7 @@ function viewCard(element)
 	}
 
 	let time='';
-	if(DB["list"][DB["chosen"]]["date"]!==undefined)
+	if(DB["list"][DB["chosen"]]["date"] !== undefined)
 	{
 		let toDay=86400000, toHours=3600000, toMin=60000, timeDiff=new Date()-new Date(DB["list"][DB["chosen"]]["date"]);
 		if(timeDiff/toHours>1&&timeDiff/toHours<30)
@@ -424,7 +425,7 @@ $("#addInput").on("click",function(){
 });
 function saveData()
 {
-	if (typeof(Storage) !== "undefined") {
+	if (typeof(Storage) !== undefined) {
 		localStorage.setItem("theToDo_DB2", JSON.stringify(DB));
 		return true;
 	} else {
@@ -433,7 +434,7 @@ function saveData()
 }
 function loadData()
 {
-	if (typeof(Storage) !== "undefined") {
+	if (typeof(Storage) !== undefined) {
 		var newDB = localStorage.getItem("theToDo_DB2");
 		if(newDB)
 		{
@@ -448,10 +449,13 @@ function loadData()
 			}
 			refresh(true);
 			changeTheme(true);
-			if(parseInt(DB["version"][0]+DB["version"][2]+DB["version"][4])<parseInt(thisVersion[0]+thisVersion[2]+thisVersion[4]))
+			if(dbChanged)
 			{
-				mode=9;
-				message("The app database structure has been updated/changed and you may need to reset your data!\nEnter 'OK' if you got it.", true);
+				if(parseInt(DB["version"][0]+DB["version"][2]+DB["version"][4])<parseInt(thisVersion[0]+thisVersion[2]+thisVersion[4]))
+				{
+					mode=9;
+					message("The app database structure has been updated/changed and you need to reset your data (manually)!\nEnter 'OK' if you got it.", true);
+				}
 			}
 			return true;
 		}
@@ -514,16 +518,14 @@ new Sortable(list, {
 	}
 });
 
-/* Close menu by clicking outside of it */
 $("#main").on("click",function(){
 	if(document.getElementById("main").classList.contains('active'))
 	{
 		closeNav();
 	}
 });
-/* Menu open button */
 $(".fa-bars").on("click",function(event){
-	event.stopPropagation();  /* Won't let the function above close menu */
+	event.stopPropagation();
 	openNav();
 });
 
@@ -540,6 +542,10 @@ function message(content,focus,keepchosen){
 		{
 			DB["chosen"]="empty";
 		}
+		// if([7,8,10,11].includes(mode))
+		// {
+		// 	$("#mainInput").attr("type","password");
+		// }
 		$("#mainInput").focus();
 	}
 	if($("#blackSection").css("display")=="none"||$("#messageBox").css("display")=="none")
@@ -551,6 +557,7 @@ function hideMessage(isMenu){
 	DB["chosen"]=null;
 	mode=0;
 	$("#mainInput").val('');
+	//$("#mainInput").attr("type","text");
 	if(!isMenu)
 	{
 		$("#addInput,#mainInput").removeClass('active');
@@ -569,7 +576,6 @@ function hideMessage(isMenu){
 	},500);
 }
 
-/* Theme function | Load and apply, change or return colors */
 function changeTheme(justLoad,returnCurrentColor)
 {
 	if(!justLoad&&!returnCurrentColor)
@@ -679,7 +685,7 @@ function importData()
 
 /* Close message box by clicking outside of it */
 $("#messageBox").on("click",function(e){
-	e.stopPropagation()
+	e.stopPropagation();
 });
 $("#blackSection").on("click",function(){
 	hideMessage();
@@ -769,7 +775,6 @@ $("#sidenav button").on("click",function(){
 	}
 });
 
-/* Hash calculator function */
 function jsaHash(ascii) {
 	function rightRotate(value, amount) {
 		return (value>>>amount) | (value<<(32 - amount));
