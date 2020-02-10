@@ -1,6 +1,6 @@
-const dbChanged=false;
+const outdatedDBs=[0,1]; /* major version */
 let DB={
-	'version':'2.3.2',
+	'version':'2.7.3',
 	'name':'',
 	'done':0,
 	'list':[],
@@ -8,40 +8,88 @@ let DB={
 	'direction':false,
 	'chosen':null,
 	'password':null,
-	'theme':0
-},mode=0,i,deleted=[],deleteBusy=false;
-var thisVersion=DB["version"];
-let colors=["rgb(0, 116, 217)","rgb(217, 0, 70)","rgb(234, 123, 0)","rgb(0, 217, 90)","rgb(162, 162, 162)","rgb(232, 209, 0)"];
-for(i=0;i<colors.length;i++)
+	'theme':0,
+	'undo':[]
+},mode=0,i,deleteBusy=false;
+var appVersion = DB["version"];
+let colors = ["rgb(0, 116, 217)","rgb(217, 0, 70)","rgb(234, 123, 0)","rgb(0, 217, 90)","rgb(162, 162, 162)","rgb(232, 209, 0)"];
+for(i=0;i<colors.length;i++) /* build label (color) selector */
 {
-	let labelSpan = document.createElement("span");
+	let labelSpan=document.createElement("span");
 	labelSpan.style.backgroundColor=colors[i];
 	labelSpan.onclick = function(){
 		if($("#pwd").hasClass('active'))
 		{
-			DB["list"][DB["chosen"]]["color"]=$(this).index();
+			DB["list"][DB["chosen"]]["color"] = $(this).index();
 			$(".card:eq("+DB["chosen"]+")").css("background-color",colors[DB["list"][DB["chosen"]]["color"]]);
 		}
 		else
 		{
-			DB["chosen"]=$(this).index();
+			DB["chosen"] = $(this).index();
+		}
+		if(mode==14)
+		{
+			$(".card.selected").each(function(){
+				DB.list[$(this).index()].color = DB["chosen"];
+			});
+			$(".card.selected").css("background-color",colors[DB["chosen"]]);
 		}
 	};
 	document.getElementById("label").appendChild(labelSpan);
 }
 
+function freezeHistory() {
+	window.history.pushState({}, window.document.title, window.location.href);
+}
+
+function goBack() {
+	let popupOpen = [];
+	popupOpen.push($("#sidenav.active").length > 0); /* menu */
+	popupOpen.push($("#messageBox").css("display")=="block"&&$("#blackSection").css("display")=="block"); /* message */
+	popupOpen.push($("#pwd").hasClass("active")); /* edit card */
+
+	if(popupOpen.indexOf(true)!==-1) {
+		if(popupOpen[0])
+		{
+			closeNav(true);
+		}
+		else if(popupOpen[2])
+		{
+			viewCard($(".card").eq(DB.chosen).find("p"));
+		}
+		else if(popupOpen[1])
+		{
+			hideMessage();
+		}
+		return false;
+	}
+	window.history.back();
+	return true;
+}
+
+$(window).on("popstate", function(e) {
+	goBack();
+})
+
 function openNav() {
-	$(".card").addClass("hasTransition");
-	$("#sidenav,#main").addClass('active');
+	freezeHistory();
+	$("#name > span").text(DB.name);
+	$("#info > span").eq(0).text(DB["list"].length+" on list");
+	$("#info > span").eq(1).text(DB["done"]+" done");
+	$("#sidenav").addClass('active');
+	if(DB.name=="Developer")
+	{
+		$(".developerButton").addClass("active");
+	}
+	if(DB.list.length<20) /* decrease animation for performance */
+	{
+		$("#main").addClass('active');
+	}
 	hideMessage(true);
 }
 
 function closeNav(isButton) {
-	$(".card").addClass("hasTransition");
 	$("#sidenav,#main").removeClass("active");
-	setTimeout(function(){
-		$(".card").removeClass("hasTransition");
-	},500);
 	if(isButton)
 	{
 		hideMessage();
@@ -66,29 +114,38 @@ function refresh(dontScroll, isAdded, refreshId)
 			indexCard(i);
 		}
 	}
-	$(".card > p").on("click",function(){
-		if(!$("#main").hasClass('active'))
-		{
-			viewCard(this);
-		}
-	});
+	refreshUndoStats();
+	saveData();
 	if(!dontScroll)
 	{
 		document.getElementById("list").scrollTo(0,document.getElementById("list").scrollHeight);
 	}
-	saveData();
 }
 
 function indexCard(i, effect, refresh)
 {
-	let card,paragraph;
+	let card,paragraph/*,gradient*/;
 	card = document.createElement("div");
 	$(card).css("background-color",colors[DB["list"][i]["color"]]);
 	card.classList.add("card");
 	paragraph = document.createElement("p");
 	paragraph.textContent = DB["list"][i]["text"];
+	$(paragraph).on("click",function(){
+		if(!$("#main").hasClass("active") && mode!=14)
+		{
+			viewCard(this);
+		}
+		else if(mode==14)
+		{
+			$(card).toggleClass("selected");
+		}
+	});
+	/*gradient = document.createElement("div");
+	gradient.classList.add("LGradient");
+	card.appendChild(gradient);
+	$(gradient).css("background", "linear-gradient(to right, "+colors[DB["list"][i]["color"]]+", transparent)");*/
 	card.appendChild(paragraph);
-	if(DB["list"][i]["password"]!=null)
+	if(DB["list"][i]["password"]!==null)
 	{
 		if(DB["list"][i]["password"]!=".")
 		{
@@ -128,11 +185,12 @@ function indexCard(i, effect, refresh)
 
 function editCard(element)
 {
+	freezeHistory();
 	mode=6;
 	if(!$(element).next().hasClass('fa-lock'))
 	{
 		DB["chosen"]=$(element).parent().index();
-		message("Rename or change color:\nTap the plus to submit");
+		message("Edit text or change color:\nTap the plus to submit");
 		$("#label,#pwd,#mainInput").addClass('active');
 		$("#mainInput").val($(element).text());
 		typed();
@@ -141,17 +199,24 @@ function editCard(element)
 
 function viewCard(element)
 {
+	let time='', canEditCard;
+
 	DB["chosen"]=$(element).parent().index();
 	$("#label,#pwd").removeClass('active');
 	if(!$(element).next().hasClass('fa-lock'))
 	{
+		canEditCard = true;
 		$("#edtcrd").addClass('active');
 		$("#edtcrd").on("click",function(){
 			editCard(element);
 		});
 	}
+	else
+	{
+		canEditCard = false;
+		$("#edtcrd").removeClass('active');
+	}
 
-	let time='';
 	if(DB["list"][DB["chosen"]]["date"] !== undefined)
 	{
 		let toDay=86400000, toHours=3600000, toMin=60000, timeDiff=new Date()-new Date(DB["list"][DB["chosen"]]["date"]);
@@ -163,7 +228,7 @@ function viewCard(element)
 		{
 			time='Added <span class="messageBoxData">'+Math.round(timeDiff/toMin)+'m</span> ago';
 		}
-		else if(timeDiff/toDay>1&&timeDiff/toDay<60)
+		else if(timeDiff/toDay>1)
 		{
 			time='Added <span class="messageBoxData">'+Math.round(timeDiff/toDay)+'d</span> ago';
 		}
@@ -172,10 +237,9 @@ function viewCard(element)
 			time="Added just now!";
 		}
 	}
-
-	$("#messageText").html("<span style='border-color:"+colors[DB["list"][DB["chosen"]]["color"]]+";' id='boxTitle' class='messageBoxData'></span>"+time+"<br><span class='messageBoxData'>"+($(element).next().hasClass('fa-lock-open')?"Password protected":"Not protected")+"</span>");
+	let toGetLockStatus = $(element).next();
+	message("<span style='border-color:"+colors[DB["list"][DB["chosen"]]["color"]]+";' id='boxTitle' class='messageBoxData'></span>"+time+"<br><span class='messageBoxData'>"+(toGetLockStatus.hasClass('fa-lock-open')||toGetLockStatus.hasClass('fa-lock')?"Password protected":"Not protected")+"</span>",null,null,true,canEditCard);
 	$("#boxTitle").text(DB["list"][DB["chosen"]]["text"]);
-	showMessage();
 }
 
 function addToList(text,color)
@@ -189,7 +253,7 @@ function addToList(text,color)
 			{
 				$("#mainInput").val('');
 				$("#addInput").removeClass('active');
-				DB["list"].push({'text':inputValue,'color':(DB["chosen"]?DB["chosen"]:DB["theme"]),'password':null,'date':new Date()});
+				DB["list"].push({'text':inputValue,'color':(DB["chosen"]?DB["chosen"]:DB["theme"]),'password':null,'date':(new Date()).toString()});
 				refresh(null, true);
 			}
 		}
@@ -201,7 +265,7 @@ function addToList(text,color)
 					switch (inputValue.toLowerCase())
 					{
 						case 'skip':
-							DB["name"]='.';
+							DB["name"]='';
 						break;
 						default:
 							DB["name"]=inputValue;
@@ -209,7 +273,7 @@ function addToList(text,color)
 					}
 				break;
 				case 2:
-					if(inputValue=="Yes")
+					if(inputValue=="YES")
 					{
 						if(localStorage)
 						{
@@ -219,16 +283,15 @@ function addToList(text,color)
 						}
 					}
 				break;
-				case 3:
-					if(inputValue=="Yes")
-					{
-						DB["done"]=0;
-						saveData();
-						window.location='';
-					}
-				break;
 				case 5:
-					DB["name"]=inputValue;
+					if(inputValue.length<40)
+					{
+						DB["name"]=inputValue;
+					}
+					else
+					{
+						redScreen(true);
+					}
 				break;
 				case 6:
 					if(searchInObject(DB["list"],"text",inputValue)==-1&&!isNaN(parseInt(DB["chosen"])))
@@ -252,12 +315,7 @@ function addToList(text,color)
 						}
 						else
 						{
-							$("#mainInput").blur();
-							$("#redScreen").fadeTo(400, 1, function() {
-								$(this).fadeTo(300, 0, function() {
-									$(this).hide();
-								});
-							});
+							redScreen();
 						}
 					}
 				break;
@@ -272,7 +330,7 @@ function addToList(text,color)
 				case 9:
 					if(inputValue=="OK")
 					{
-						DB["version"]=thisVersion;
+						DB["version"]=appVersion;
 					}
 				break;
 				case 10:
@@ -281,6 +339,7 @@ function addToList(text,color)
 						if(DB["chosen"]=="changePass")
 						{
 							$("#mainInput").val('');
+							$("#addInput").removeClass('active');
 							message("Enter a new password:",true);
 							mode=11;
 							return;
@@ -291,9 +350,99 @@ function addToList(text,color)
 							closeNav(true);
 						}
 					}
+					else
+					{
+						redScreen();
+					}
 				break;
 				case 11:
-					DB["password"]=jsaHash(inputValue);
+					let inputHash = jsaHash(inputValue);
+					if(DB["chosen"]==inputHash)
+					{
+						DB["password"]=inputHash;
+					}
+					else
+					{
+						DB["chosen"]=inputHash;
+						message("Re-enter password:",true,true);
+						$("#mainInput").val('');
+						mode=11;
+						return;
+					}
+				break;
+				case 12:
+					importData(true,function(filePass){
+						if(filePass)
+						{
+							if(jsaHash(inputValue)===filePass)
+							{
+								importData();
+								return;
+							}
+							else
+							{
+								redScreen(true);
+								message("Wrong password!");
+							}
+						}
+						else
+						{
+							message("The file has no password!");
+						}
+					});
+					clearInput();
+					return;
+				break;
+				case 3:
+					if(inputValue=="OK")
+					{
+						$("#list").scrollTop(0);
+						$("#lockScreen").addClass("active");
+						let i=0, limit=$(".card").length;
+						let a=setInterval(function(){
+							if(i>=limit){
+								$("#lockScreen").removeClass("active");
+								refreshUndoStats();
+								clearInterval(a);
+								return;
+							}
+							deleteItem(".card:eq(0) > .fa");
+							i++;
+						},400);
+					}
+				break;
+				case 13:
+					if(jsaHash(inputValue)==DB["password"])
+					{
+						$(".fa-lock").each(function(){
+							lockFunc(null, $(this).parent().index());
+						});
+					}
+					else
+					{
+						redScreen();
+					}
+				break;
+				case 14:
+					if(inputValue=="del")
+					{
+						let toBeDone = [];
+						$(".card.selected").each(function(){
+							toBeDone.push($(this).index());
+						});
+						$("#lockScreen").addClass("active");
+						let i=0, limit=toBeDone.length;
+						let a=setInterval(function(){
+							if(i>=limit){
+								$("#lockScreen").removeClass("active");
+								refreshUndoStats();
+								clearInterval(a);
+								return;
+							}
+							deleteItem(".card:eq("+(toBeDone[i]-i)+") > .fa");
+							i++;
+						},400);
+					}
 				break;
 			}
 		}
@@ -302,12 +451,11 @@ function addToList(text,color)
 	{
 		if(searchInObject(DB["list"],"text",text)==-1)
 		{
-			DB["list"].push({'text':text,'color':color,'password':null,'date':new Date()});
+			DB["list"].push({'text':text,'color':color,'password':null,'date':(new Date()).toString()});
 			DB["done"]--;
 			refresh(null, true);
 		}
 	}
-	DB["chosen"]=null;
 	hideMessage();
 }
 function deleteItem(item)
@@ -321,21 +469,50 @@ function deleteItem(item)
 		});
 		element.prev().hide(200);
 		element.hide(200);
-		setTimeout(function(){deleteBusy=false;},200);
+		setTimeout(function(){deleteBusy=false;},300);
 		let id=element.parent().index();
-		deleted=[DB["list"][id]["text"],DB["list"][id]["color"]];
+		if(DB["undo"].length>9)
+		{
+			DB["undo"].shift();
+		}
+		DB["undo"].push([DB["list"][id]["text"],DB["list"][id]["color"]]);
 		DB["list"].splice(id,1);
 		DB["done"]++;
-		$("#uDT").addClass("active");
+		refreshUndoStats();
 		saveData();
+	}
+}
+function refreshUndoStats()
+{
+	if(DB["undo"].length>0)
+	{
+		$("#uDT").addClass("active");
+		$("#uDT").html('<i class="fa fa-undo"></i> Undo ('+DB["undo"].length+')');
+	}
+	else
+	{
+		$("#uDT").removeClass("active");
+		$("#uDT").html('<i class="fa fa-undo"></i> Undo');
 	}
 }
 
 $("#mainInput").on("focus",function(){
-	if(DB["chosen"]==null&&!$("#label").hasClass('active'))
+	if(DB["chosen"]==null&&!$("#label").hasClass('active')&&mode!=14)
 	{
 		$("#label").addClass('active');
-		message("Task label color");
+		message("Card color");
+	}
+	else if(mode==14)
+	{
+		if($(".selected").length>0)
+		{
+			$("#label").addClass('active');
+			message("<span class='messageBoxData'>SELECTOR mode</span><br>Type 'del' to check<br>Or choose color",null,null,true);
+		}
+		else
+		{
+			message("<span class='messageBoxData'>SELECTOR mode</span><br>Nothing selected!<br>Open menu and click Selector again...",null,null,true);
+		}
 	}
 	$(this).css("color",changeTheme(null,true)[1]);
 });
@@ -348,8 +525,16 @@ function passwordChange()
 	$("#label,#pwd").removeClass('active');
 	$("#mainInput").val('');
 	typed();
-	mode=8;
-	message("Enter the new password:\n\nSpace: remove password\nDot: lock sort, check and edit",true,true);
+	if(DB["password"]!==null)
+	{
+		mode=8;
+		message("Enter password for card:\n\nSpace: remove password\nDot: lock sort, check and edit",true,true);
+	}
+	else
+	{
+		mode=-1;
+		message("You should set master password before locking cards.");
+	}
 }
 
 function lockFunc(element,id)
@@ -405,13 +590,18 @@ function searchInObject(array,attr,toSearch)
 
 function typed()
 {
-	if($("#mainInput").val().length>0)
+	let valLen = $("#mainInput").val().length;
+	if(valLen>0)
 	{
 		$("#addInput").addClass('active');
 	}
 	else
 	{
 		$("#addInput").removeClass('active');
+	}
+	if($("#mainInput").hasClass("protected"))
+	{
+		message($("#messageText").text().split('\n').shift()+"\n<span class='messageBoxData inputLength'>"+(valLen==0?"No":valLen)+"</span> character"+(valLen<2?'':'s'),null,null,true);
 	}
 }
 $(document).keypress(function(e) { /* press key */
@@ -439,6 +629,10 @@ function loadData()
 		if(newDB)
 		{
 			DB=JSON.parse(newDB);
+			if(DB["undo"]===undefined)
+			{
+				DB["undo"]=[];
+			}
 			if(DB["column"])
 			{
 				$("#list").addClass('twoColumn');
@@ -449,13 +643,10 @@ function loadData()
 			}
 			refresh(true);
 			changeTheme(true);
-			if(dbChanged)
+			if(outdatedDBs.indexOf(parseInt(DB["version"].split('.')[0]))!=-1) /* if db major version is outdated */
 			{
-				if(parseInt(DB["version"][0]+DB["version"][2]+DB["version"][4])<parseInt(thisVersion[0]+thisVersion[2]+thisVersion[4]))
-				{
-					mode=9;
-					message("The app database structure has been updated/changed and you need to reset your data (manually)!\nEnter 'OK' if you got it.", true);
-				}
+				mode=9;
+				message("The app database structure has been <span class='messageBoxData'>updated/changed</span> and you need to <span class='messageBoxData'>reset your data</span> (manually)!\nEnter 'OK' if you got it.", true, null, true);
 			}
 			return true;
 		}
@@ -518,34 +709,45 @@ new Sortable(list, {
 	}
 });
 
-$("#main").on("click",function(){
-	if(document.getElementById("main").classList.contains('active'))
+$("#main, #profile").on("click",function(){
+	if(document.getElementById("sidenav").classList.contains('active'))
 	{
-		closeNav();
+		closeNav(true);
 	}
 });
-$(".fa-bars").on("click",function(event){
+$(".fa-chevron-up").on("click",function(event){
 	event.stopPropagation();
 	openNav();
 });
 
 function showMessage(){
+	freezeHistory();
 	$("#blackSection").fadeTo(300,1);
 	$("#blackSection > #messageBox").delay(200).fadeTo(300,1);
 }
-function message(content,focus,keepchosen){
-	$("#edtcrd").removeClass('active');
-	$("#messageText").text(content);
+function message(content,focus,keepchosen,html,showEditCard){
+	if(!showEditCard)
+	{
+		$("#edtcrd").removeClass('active');
+	}
+	if(html)
+	{
+		$("#messageText").html(content);
+	}
+	else
+	{
+		$("#messageText").text(content);
+	}
 	if(focus)
 	{
 		if(!keepchosen)
 		{
 			DB["chosen"]="empty";
 		}
-		// if([7,8,10,11].includes(mode))
-		// {
-		// 	$("#mainInput").attr("type","password");
-		// }
+		if([7,8,10,11,12,13].includes(mode))
+		{
+			$("#mainInput").addClass("protected noSelect");
+		}
 		$("#mainInput").focus();
 	}
 	if($("#blackSection").css("display")=="none"||$("#messageBox").css("display")=="none")
@@ -553,11 +755,21 @@ function message(content,focus,keepchosen){
 		showMessage();
 	}
 }
+function clearInput(){
+	DB["chosen"]=null;
+	mode=0;
+	$(".card").removeClass("selected")
+	$("#mainInput").val('');
+	$("#mainInput").removeClass("protected noSelect active");
+	$("#mainInput").blur();
+	typed();
+}
 function hideMessage(isMenu){
 	DB["chosen"]=null;
 	mode=0;
+	$(".card").removeClass("selected")
 	$("#mainInput").val('');
-	//$("#mainInput").attr("type","text");
+	$("#mainInput").removeClass("protected noSelect");
 	if(!isMenu)
 	{
 		$("#addInput,#mainInput").removeClass('active');
@@ -582,6 +794,7 @@ function changeTheme(justLoad,returnCurrentColor)
 	{
 		DB["theme"]++;
 	}
+
 	let colorA="#7FDBFF",colorB="#0074D9",colorC="#001f3f",colorD="#001a31";
 	switch(DB["theme"])
 	{
@@ -626,7 +839,7 @@ function changeTheme(justLoad,returnCurrentColor)
 
 		$("#mainInput.active").css("border-color",colorB);
 		$("#addInput").css("background-color",colorB);
-		$(".fa-bars").css("color",colorB);
+		$(".fa-chevron-up").css("color",colorB);
 
 		$("meta[name='theme-color']").attr("content",colorC);
 		$("body,#panel").css("background-color",colorC);
@@ -655,7 +868,13 @@ function downloadDB()
 	download("EasyToDo_"+(new Date()).toISOString().replace(/z|t/gi,' ').trim()+".txt",JSON.stringify(DB));
 }
 
-function importData()
+function importDataSecurity() {
+	closeNav();
+	mode=12;
+	message("Enter your new data master password to import:",true);
+}
+
+function importData(returnPass, callback)
 {
 	let file = document.getElementById("fileInput").files[0];
 	let textType = /text.*/;
@@ -665,22 +884,45 @@ function importData()
 
 		reader.onload = function() {
 			try {
-				DB=JSON.parse(reader.result);
-				message("Data imported successfully!");
-				refresh(true);
+				if(returnPass)
+				{
+					callback(JSON.parse(reader.result).password);
+				}
+				else
+				{
+					DB=JSON.parse(reader.result);
+					message("Data imported successfully!");
+					if(saveData())
+					{
+						window.location='';
+					}
+					else
+					{
+						refresh(true);
+					}
+				}
 			}
 			catch {
+				redScreen(true);
 				message("There was an error while reading data!");
-				$("#redScreen").fadeTo(400, 1, function() {
-					$(this).fadeTo(300, 0, function() {
-						$(this).hide();
-					});
-				});
 			}
 		}
-
 		reader.readAsText(file);
 	}
+}
+
+function redScreen(keepMessage=false)
+{
+	if(!keepMessage)
+	{
+		hideMessage();
+		$("#mainInput").blur();
+	}
+	$("#redScreen").fadeTo(400, 1, function() {
+		$(this).fadeTo(300, 0, function() {
+			$(this).hide();
+		});
+	});
 }
 
 /* Close message box by clicking outside of it */
@@ -692,31 +934,53 @@ $("#blackSection").on("click",function(){
 });
 
 /* Handle menu buttons */
-$("#sidenav button").on("click",function(){
+$("#sidenav button, #info > div").on("click",function(){
 	if(mode==0)
 	{
-		closeNav();
 		switch(this.id)
 		{
 			case "rDB":
 				mode=2;
-				message("Are you sure you want to delete all data?!\nEnter 'Yes' to continue:",true);
+				message("Are you sure you want to delete all data?!\nEnter 'YES' to continue:",true);
 			break;
-			case "rCR":
-				mode=3;
-				message("Are you sure you want to reset counter to zero?!\nEnter 'Yes' to continue:",true);
+			case "rST":
+				$("#list").fadeTo(300,0.1,function(){
+					DB["list"].reverse();
+					saveData();
+					refresh(true);
+					$("#list").fadeTo(300,1);
+				});
+				hideMessage();
+			break;
+			case "dST":
+				$("#list").fadeTo(300,0.1,function(){
+					DB["list"].sort(function(a, b) { 
+						return a.date.localeCompare(b.date);
+					});
+					saveData();
+					refresh(true);
+					$("#list").fadeTo(300,1);
+				});
+				hideMessage();
+			break;
+			case "lST":
+				$("#list").fadeTo(300,0.1,function(){
+					DB["list"].sort(function(a, b) { 
+						return a.color - b.color;
+					});
+					saveData();
+					refresh(true);
+					$("#list").fadeTo(300,1);
+				});
+				hideMessage();
 			break;
 			case "about":
 				mode=-1;
-				message("Easy ToDo v"+thisVersion+"\nA super easy to use todo list. Just type in the field box and tap the plus button. Your data is saved locally on your device. So it's safe.\nTap the plus button to close.");
+				message("<span class='messageBoxData'>Easy ToDo v"+appVersion+"</span>\nA super easy to use todo list. Your data is saved locally on your device. So it's safe.\n\n<span class='messageBoxData'>Add card</span> by typing in the field box and tap the plus button.\n<span class='messageBoxData'>Edit card</span> by taping on it\n<span class='messageBoxData'>Sort card</span> by taping the sort icon on card",null,null,true);
 			break;
-			case "cNM":
+			case "name":
 				mode=5;
 				message("Enter the new name:",true);
-			break;
-			case "sDB":
-				mode=-1;
-				message("Name: "+DB["name"]+"\nTasks: "+DB["list"].length+"\nDone: "+DB["done"]+"\nTap the plus button to close.");
 			break;
 			case "cCN":
 				DB["column"]=!DB["column"];
@@ -730,16 +994,27 @@ $("#sidenav button").on("click",function(){
 				saveData();
 				closeNav(true);
 			break;
+			case "cAC":
+				mode=3;
+				message("Enter 'OK' to check all cards:",true);
+			break;
 			case "uDT":
 				if($(this).hasClass('active'))
 				{
-					addToList(deleted[0],deleted[1]);
-					$(this).removeClass('active');
+					let lastCard = DB["undo"].pop();
+					addToList(lastCard[0],lastCard[1]);
+					refreshUndoStats();
 				}
 				closeNav(true);
 			break;
+			case "sCD":
+				setTimeout(function(){
+					mode=14;
+				},200);
+				closeNav(true);
+			break;
 			case "eDB":
-				if(DB["password"]!=null)
+				if(DB["password"]!==null)
 				{
 					mode=10;
 					message("Enter master password:",true);
@@ -750,7 +1025,7 @@ $("#sidenav button").on("click",function(){
 				}
 			break;
 			case "sMP":
-				if(DB["password"]!=null)
+				if(DB["password"]!==null)
 				{
 					mode=10;
 					DB["chosen"]="changePass";
@@ -762,9 +1037,51 @@ $("#sidenav button").on("click",function(){
 					message("Enter a password:",true);
 				}
 			break;
+			case "uAC":
+				if(DB["password"]!==null)
+				{
+					mode=13;
+					message("Enter master password:",true);
+				}
+				else
+				{
+					message("You should set a master password before unlocking locked cards.");
+				}
+			break;
 			case "cTH":
 				changeTheme();
-				hideMessage();
+				return;
+			break;
+			case "rDC":
+				DB.done=0;
+				saveData();
+				closeNav(true);
+			break;
+			case "rUD":
+				DB.undo=[];
+				saveData();
+				closeNav(true);
+			break;
+			case "rUN":
+				DB.name='.';
+				saveData();
+				closeNav(true);
+			break;
+			case "rAV":
+				DB["version"]=appVersion;
+				saveData();
+				closeNav(true);
+			break;
+			case "dCD":
+				DB.list=[];
+				refresh(true);
+				closeNav(true);
+			break;
+			case "rPG":
+				window.location='';
+			break;
+			case "fMD":
+				$("*").css("transition","none");
 			break;
 		}
 		if(mode==-1)
@@ -772,6 +1089,7 @@ $("#sidenav button").on("click",function(){
 			$("#mainInput").val('Tap the plus to close');
 			typed();
 		}
+		closeNav();
 	}
 });
 
@@ -863,6 +1181,7 @@ function reSized()
 		setTimeout(function(){
 			$("#list,#blackSection").css("height",window.innerHeight-$("#panel").outerHeight());
 		},400);
+		$("#messageBox").css("max-height",(window.innerHeight*0.7)-$("#panel").outerHeight());
 	}
 	else
 	{
