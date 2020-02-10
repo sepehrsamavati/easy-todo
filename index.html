@@ -6,40 +6,67 @@
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="theme-color" content="#001f3f" />
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" rel="stylesheet">
 	<link href="style.css" rel="stylesheet">
 	<link rel="icon" href="http://rozup.ir/view/2931796/fav.png" type="image/png"> 
 </head>
 <body onresize="reSized()">
+	<div id="lockScreen"></div>
 	<div id="redScreen"></div>
 	<div id="sidenav">
 		<a href="javascript:void(0)" class="closebtn" onclick="closeNav(true)">×</a>
 		<div style="width: 50%;">
-			<button id="about">About</button>
-			<button id="sDB">See data</button>
-			<button id="rDB">Reset data</button>
-			<button id="cNM">Change name</button>
-			<button id="rCR">Reset counter</button>
+			<button id="uDT"><i class="fa fa-undo"></i> Undo</button>
+			<button id="about"><i class="fa fa-info"></i> About</button>
+			<button id="sMP"><i class="fa fa-user-shield"></i> Master pass</button>
+			<button id="cTH"><i class="fa fa-palette"></i> Change theme</button>
+			<label for="fileInput" id="iDB"><i class="fa fa-file-import"></i> Import data</label>
+			<input id="fileInput" type='file' accept='text/plain' onchange='importDataSecurity()'>
 			<button id="eDB"><i class="fa fa-file-export"></i> Export data</button>
+			<button id="sCD"><i class="fa fa-hand-pointer"></i> Selector</button>
+			<button id="rDB"><i class="fa fa-trash-alt"></i> Reset data</button>
+			<div class="developerButton title">
+				<button id="rDC"><i class="fa fa-trash"></i> Reset done</button>
+				<button id="rUD"><i class="fa fa-trash"></i> Reset undo</button>
+				<button id="rUN"><i class="fa fa-trash"></i> Reset name</button>
+				<button id="rAV"><i class="fa fa-trash"></i> Reset version</button>
+			</div>
 		</div>
 		<div>
-			<button id="uDT"><i class="fa fa-undo"></i> Undo</button>
 			<button id="cCN"><i class="fa fa-columns"></i> Column</button>
 			<button id="cDN"><i class="fa fa-align-left"></i> Direction</button>
-			<button id="cTH"><i class="fa fa-palette"></i> Change theme</button>
-			<button id="sMP"><i class="fa fa-user-shield"></i> Master password</button>
-			<label for="fileInput" id="iDB"><i class="fa fa-file-import"></i> Import data</label>
-			<input id="fileInput" type='file' accept='text/plain' onchange='importData()'>
+			<button id="rST"><i class="fa fa-sort-amount-up-alt"></i> Reverse sort</button>
+			<button id="lST"><i class="fa fa-sort-amount-down"></i> Sort by color</button>
+			<button id="dST"><i class="fa fa-sort-numeric-down"></i> Sort by date</button>
+			<button id="uAC"><i class="fa fa-unlock-alt"></i> Unlock all</button>
+			<button id="cAC"><i class="fa fa-check-double"></i> Check all</button>
+			<div class="developerButton">
+				<button id="fMD"><i class="fa fa-rocket"></i> Fast mode</button>
+				<button id="rPG"><i class="fa fa-retweet"></i> Reload page</button>
+				<a href="http://rozup.ir/download/3047246/1Kdata_passwordIsDot.txt" download><i class="fa fa-cloud-download-alt"></i> 1K card DB</a>
+				<a target="blank" href="http://www.hmht.ir/page/contactme"><i class="fa fa-bug"></i> Report a bug</a>
+				<button id="dCD"><i class="fa fa-trash"></i> Delete cards</button>
+			</div>
+		</div>
+	</div>
+	<div id="profile">
+		<div id="info">
+			<div id="name">
+				<span></span>
+				<i class="fa fa-user-circle"></i>
+			</div>
+			<span></span>
+			<span></span>
 		</div>
 	</div>
 	<div id="main">
 		<h1 id="desktopLimit">Built for Mobile Devices</h1>
 		<div class="textBox" id="stats"></div>
-		<section id="list">
+		<section id="list" data-toggle="#sidenav">
 		</section>
 		<section id="panel">
 			<center>
-				<span class="fa fa-bars"></span>
+				<span class="fa fa-chevron-up"></span>
 				<input id="mainInput" type="text" name="Task title" oninput="typed()">
 				<div id="addInput"><span>+</span></div>
 			</center>
@@ -47,14 +74,14 @@
 		<section id="blackSection">
 			<div id="messageBox">
 				<span id="messageText"></span>
-				<center style="margin: 1vw;"><div class="customButton" id="pwd" onclick="passwordChange()">Add/Edit password</div></center>
-				<center style="margin: 1vw;"><div class="customButton" id="edtcrd" onclick="editCard()" style="font-size: 5vw;">Edit item</div></center>
+				<center><div class="customButton" id="pwd" onclick="passwordChange()">Add/Edit password</div></center>
+				<center><div class="customButton" id="edtcrd" onclick="editCard()" style="font-size: 5vw;">Edit card</div></center>
 				<div id="label"></div>
 			</div>
 		</section>
 	</div>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.10.1/Sortable.min.js"></script>
 <script src="easytodo.js"></script>
 </html>
