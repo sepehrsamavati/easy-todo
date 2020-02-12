@@ -89,47 +89,21 @@ Rename your account to 'Developer' to get extra buttons on your menu.
 ### Modes
 DB.mode details
 
-#### 0 and -1
-Used as null and canceled operation
-
-#### 1
-Startup name input
-
-#### 2
-Reset DB
-
-#### 3
-Check all cards
-
-#### 5
-Changing name
-
-#### 6
-Editing card
-
-#### 7
-Unlocking card
-
-#### 8
-Remove/Change/Add password
-
-#### 9
-Updating outdated DB version
-
-#### 10
-Changing master password or entered master password to export DB
-
-#### 11
-Setting master password
-
-#### 12
-Importing DB
-
-#### 13
-Unlock all cards
-
-#### 14
-Selector - check selected cards
+**0 and -1** Used as null and canceled operation\
+**1** Startup name input\
+**2** Reset DB\
+**3** Check all cards\
+**4** empty - nothing\
+**5** Changing name\
+**6** Editing card\
+**7** Unlocking card\
+**8** Remove/Change/Add password\
+**9** Updating outdated DB version\
+**10** Changing master password or entered master password to export DB\
+**11** Setting master password\
+**12** Importing DB\
+**13** Unlock all cards\
+**14** Selector - check selected cards
 
 
 ### Functions
