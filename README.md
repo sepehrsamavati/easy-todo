@@ -89,7 +89,8 @@ Rename your account to 'Developer' to get extra buttons on your menu.
 ### Modes
 DB.mode details
 
-**0 and -1** Used as null and canceled operation\
+**-1** Used as null and canceled operation\
+**0** Add card\
 **1** Startup name input\
 **2** Reset DB\
 **3** Check all cards\
