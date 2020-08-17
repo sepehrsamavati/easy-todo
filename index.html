@@ -8,8 +8,9 @@
 	<meta name="theme-color" content="#001f3f" />
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" rel="stylesheet">
 	<link href="style.css" rel="stylesheet">
-	<link rel="icon" href="http://rozup.ir/view/2931796/fav.png" type="image/png"> 
+	<link rel="icon" href="http://rozup.ir/view/2931796/fav.png" type="image/png">
 </head>
+
 <body onresize="reSized()">
 	<div id="lockScreen"></div>
 	<div id="redScreen"></div>
@@ -21,7 +22,7 @@
 			<button id="sMP"><i class="fa fa-user-shield"></i> Master pass</button>
 			<button id="cTH"><i class="fa fa-palette"></i> Change theme</button>
 			<label for="fileInput" id="iDB"><i class="fa fa-file-import"></i> Import data</label>
-			<input id="fileInput" type='file' accept='text/plain' onchange='importDataSecurity()'>
+			<input id="fileInput" type='file' accept='text/plain' onclick="this.value=null;" onchange='importDataSecurity()'>
 			<button id="eDB"><i class="fa fa-file-export"></i> Export data</button>
 			<button id="sCD"><i class="fa fa-hand-pointer"></i> Selector</button>
 			<button id="rDB"><i class="fa fa-trash-alt"></i> Reset data</button>
@@ -30,6 +31,7 @@
 				<button id="rUD"><i class="fa fa-trash"></i> Reset undo</button>
 				<button id="rUN"><i class="fa fa-trash"></i> Reset name</button>
 				<button id="rAV"><i class="fa fa-trash"></i> Reset version</button>
+				<button id="dCD"><i class="fa fa-trash"></i> Delete cards</button>
 			</div>
 		</div>
 		<div>
@@ -40,12 +42,12 @@
 			<button id="dST"><i class="fa fa-sort-numeric-down"></i> Sort by date</button>
 			<button id="uAC"><i class="fa fa-unlock-alt"></i> Unlock all</button>
 			<button id="cAC"><i class="fa fa-check-double"></i> Check all</button>
+			<a href="https://github.com/sepehrsamavati/easy-todo"><i class="fa fa-code"></i> GitHub</a>
 			<div class="developerButton">
 				<button id="fMD"><i class="fa fa-rocket"></i> Fast mode</button>
 				<button id="rPG"><i class="fa fa-retweet"></i> Reload page</button>
 				<a href="http://rozup.ir/download/3047246/1Kdata_passwordIsDot.txt" download><i class="fa fa-cloud-download-alt"></i> 1K card DB</a>
 				<a target="blank" href="http://www.hmht.ir/page/contactme"><i class="fa fa-bug"></i> Report a bug</a>
-				<button id="dCD"><i class="fa fa-trash"></i> Delete cards</button>
 			</div>
 		</div>
 	</div>
@@ -60,7 +62,7 @@
 		</div>
 	</div>
 	<div id="main">
-		<h1 id="desktopLimit">Built for Mobile Devices</h1>
+		<span id="desktopWarn">Desktop version under development</span>
 		<div class="textBox" id="stats"></div>
 		<section id="list" data-toggle="#sidenav">
 		</section>
@@ -75,7 +77,7 @@
 			<div id="messageBox">
 				<span id="messageText"></span>
 				<center><div class="customButton" id="pwd" onclick="passwordChange()">Add/Edit password</div></center>
-				<center><div class="customButton" id="edtcrd" onclick="editCard()" style="font-size: 5vw;">Edit card</div></center>
+				<center><div class="customButton" id="edtcrd" onclick="editCard()">Edit card</div></center>
 				<div id="label"></div>
 			</div>
 		</section>
