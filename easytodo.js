@@ -1,6 +1,6 @@
 const outdatedDBs=[0,1]; /* major version */
 let DB={
-	'version':'2.7.3',
+	'version':'2.8.3',
 	'name':'',
 	'done':0,
 	'list':[],
@@ -10,7 +10,7 @@ let DB={
 	'password':null,
 	'theme':0,
 	'undo':[]
-},mode=0,i,deleteBusy=false;
+},mode=0,i,deleteBusy=false,isDesktop=false;
 var appVersion = DB["version"];
 let colors = ["rgb(0, 116, 217)","rgb(217, 0, 70)","rgb(234, 123, 0)","rgb(0, 217, 90)","rgb(162, 162, 162)","rgb(232, 209, 0)"];
 for(i=0;i<colors.length;i++) /* build label (color) selector */
@@ -69,7 +69,7 @@ function goBack() {
 
 $(window).on("popstate", function(e) {
 	goBack();
-})
+});
 
 function openNav() {
 	freezeHistory();
@@ -81,7 +81,7 @@ function openNav() {
 	{
 		$(".developerButton").addClass("active");
 	}
-	if(DB.list.length<20) /* decrease animation for performance */
+	if(DB.list.length<20||isDesktop) /* decrease animation for performance except for desktop */
 	{
 		$("#main").addClass('active');
 	}
@@ -173,6 +173,10 @@ function indexCard(i, effect, refresh)
 	if(effect) /* fade in effect */
 	{
 		card.style.opacity=0;
+		if(isDesktop)
+		{
+			$(card).hide();
+		}
 	}
 	document.getElementById("list").appendChild(card);
 	if(refresh)
@@ -180,6 +184,7 @@ function indexCard(i, effect, refresh)
 		$(card).insertAfter($(".card").eq(i));
 		$(".card").eq(i).remove();
 	}
+	$(card).show('slow');
 	$(card).delay(230).fadeTo(500, 1);
 }
 
@@ -496,6 +501,10 @@ function refreshUndoStats()
 	}
 }
 
+$("#mainInput").on("click", function(e){
+	e.stopPropagation();
+	closeNav();
+});
 $("#mainInput").on("focus",function(){
 	if(DB["chosen"]==null&&!$("#label").hasClass('active')&&mode!=14)
 	{
@@ -683,6 +692,10 @@ setTimeout(function(){
 			$("#stats").fadeTo(500,0,function(){
 				$(this).css("display","none");
 			});
+			if(isDesktop&&$("#blackSection").css("display")=="none"&&$("#messageBox").css("display")=="none")
+			{
+				message("Welcome to desktop version.\nEasy ToDo Desktop is under development and may have UI issues but everything works fine...");
+			}
 		},6000);
 	}
 },4000);
@@ -869,6 +882,7 @@ function downloadDB()
 }
 
 function importDataSecurity() {
+	console.log("Here")
 	closeNav();
 	mode=12;
 	message("Enter your new data master password to import:",true);
@@ -954,8 +968,8 @@ $("#sidenav button, #info > div").on("click",function(){
 			break;
 			case "dST":
 				$("#list").fadeTo(300,0.1,function(){
-					DB["list"].sort(function(a, b) { 
-						return a.date.localeCompare(b.date);
+					DB["list"].sort(function(a, b) {
+						return new Date(a.date) - new Date(b.date);
 					});
 					saveData();
 					refresh(true);
@@ -976,7 +990,7 @@ $("#sidenav button, #info > div").on("click",function(){
 			break;
 			case "about":
 				mode=-1;
-				message("<span class='messageBoxData'>Easy ToDo v"+appVersion+"</span>\nA super easy to use todo list. Your data is saved locally on your device. So it's safe.\n\n<span class='messageBoxData'>Add card</span> by typing in the field box and tap the plus button.\n<span class='messageBoxData'>Edit card</span> by taping on it\n<span class='messageBoxData'>Sort card</span> by taping the sort icon on card",null,null,true);
+				message("<span class='messageBoxData'>Easy ToDo v"+appVersion+"</span>\nA super easy to use todo list. Your data is saved locally on your device. So it's safe.\n\n<span class='messageBoxData'>Add card</span> by typing in the field box and tap the plus button.\n<span class='messageBoxData'>Edit card</span> by taping on it\n<span class='messageBoxData'>Sort card</span> by taping the sort icon on card\n<a href='https://github.com/sepehrsamavati/easy-todo#user-guide'>More help here</a>",null,null,true);
 			break;
 			case "name":
 				mode=5;
@@ -1186,6 +1200,11 @@ function reSized()
 	else
 	{
 		setTimeout(reSized,1000);
+	}
+	if($("body").outerWidth()>=768){
+		isDesktop = true;
+	}else{
+		isDesktop = false;
 	}
 }
 reSized();
