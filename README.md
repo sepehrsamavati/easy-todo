@@ -1,6 +1,6 @@
 # Easy ToDo
-Easy ToDo / Open-source Javascript todo list
-### [hmht.ir/todo](http://hmht.ir/page/todo)
+Open-source/Client side Javascript todo list web app
+### [sepehrsamavati.ir/pwa/easytodo](https://sepehrsamavati.ir/pwa/easytodo/)
 
 # User guide
 ## *Simple usage*
@@ -87,7 +87,7 @@ Rename your account to 'Developer' to get extra buttons on your menu.
 ***There's a little spaghetti code***
 
 ### Modes
-DB.mode details
+DB.mode value (int)
 
 **-1** Used as null and canceled operation\
 **0** Add card\
@@ -109,21 +109,21 @@ DB.mode details
 
 ### Functions
 
-Default boolean values are false and you're not supposed to pass them if they're not needed (true). Use null or false.
+Default boolean values are false.
 
 
-**openNav()**
+**openNav()**\
 Opens menu and hides message box
 
-**closeNav(isButton)**
+**closeNav(isButton)**\
 Closes menu
-isButton:boolean Won't hide message box
+`isButton:boolean` Won't hide message box
 
-**refresh(dontScroll, isAdded, refreshId)**
+**refresh(dontScroll, isAdded, refreshId)**\
 Refresh/Add Cards from DB to DOM
-dontScroll:boolean Won't scroll to bottom of page (an animation)
-isAdded:boolean Pass true if there a new card added to DB
-refreshId:boolean Card element number in DB.list array (for refreshing 1 card)
+`dontScroll:boolean` Won't scroll to bottom of page (an animation)
+`isAdded:boolean` Pass true if there a new card added to DB
+`refreshId:boolean` Card element index in DB.list array (for refreshing 1 card)
 
 **e.g.**
 ```javascript
@@ -136,19 +136,19 @@ refresh(null, null, 4) // refreshes 5th card in DOM list
 
 **deleteItem(item)**\
 Delete a card from DB and DOM completely\
-item:DOM-Element One of the buttons ('i' tag) of the card you want to delete
+`item:DOM-Element` One of the buttons ('i' tag) of the card you want to delete
 
 
 **refreshUndoStats()**\
 Refreshes undo count in menu (DOM)
 
 **passwordChange()**\
-Add/Edit password for a DB.chosen (element number in DB) card
+Add/Edit password for a DB.chosen (element index in DB) card
 
 **lockFunc(element,id)**\
 Lock/Unlock a card.\
-element:DOM-Element Card's lock 'i' tag. If card is locked (has 'fa-lock' class) will require password to open and if card is unlocked (has 'fa-lock-open' class) will lock it again (actually refreshes it)\
-id:int Element number that you want to unlock it
+`element:DOM-Element` Card's lock 'i' tag. If card is locked (has 'fa-lock' class) will require password to open and if card is unlocked (has 'fa-lock-open' class) will lock it again (actually refreshes it)\
+`id:int` Element index that you want to unlock it
 
 **e.g.**
 ```javascript
@@ -164,18 +164,18 @@ Load data from localstorage to DB variable.
 
 **message(content, focus, keepchosen, html, showEditCard)**\
 Shows a specific message to user.\
-content:string Message text\
-focus:boolean Focus on input, used when you ask user for something.\
-keepchosen:boolean Keep DB.chosen when focuses on input or not\
-html:boolean Render content as html or text\
-showEditCard:boolean Keep 'Edit card' button in message box or remove 'active' class
+`content:string` Message text\
+`focus:boolean` Focus on input, used when you ask user for something.\
+`keepchosen:boolean` Keep DB.chosen when focuses on input or not\
+`html:boolean` Render content as html or text\
+`showEditCard:boolean` Keep 'Edit card' button in message box or remove 'active' class
 
 **changeTheme(justLoad,returnCurrentColor)**\
 Changes app theme.\
 Currently there are 6 themes. Each of them contains 4 color (A, B, C, D) - Bright to Dark\
 A: Menu buttons - B: Cards background - C: Background - D: Menu background\
-justLoad:boolean Just loads current DB colors to DOM\
-returnCurrentColor:boolean Return DB color array
+`justLoad:boolean` Just loads current DB colors to DOM\
+`returnCurrentColor:boolean` Return DB color array
 
 **e.g.**
 ```javascript
@@ -191,13 +191,13 @@ Exports DB - actually downloads a text file
 
 **importData(returnPass, callback)**\
 Imports DB (text file) from '#fileInput' element\
-returnPass:boolean Return selected (callback should be true)\
-callback:function Callback function when file loading finished (returnPass should be true)
+`returnPass:boolean` Return selected data file password hash (callback required)\
+`callback:function` Callback function when file loading is finished (returnPass should be true)
 
 **redScreen(keepMessage)**\
 Shows and hide red screen (with transition) - used on wrong password input.\
-keepMessage:boolean Doesn't work - ignore it
+`keepMessage:boolean` Doesn't work - ignore it
 
 **jsaHash(ascii)**\
-Hash function (from my JSAddition plug-in - not released). Used to save master password as hash.\
-ascii:string Text you want to calculate it's hash
+Hash function, used to save master password as hash.\
+`ascii:string` Text you want to calculate it's hash
